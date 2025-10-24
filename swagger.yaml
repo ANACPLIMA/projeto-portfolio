@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  title: API de Acompanhamento de Estoque de Alimentos
+  version: 1.0.0
+  description: API para controle de estoque e consumo de alimentos da dispensa
+servers:
+  - url: http://localhost:3000/
+paths:
+  /auth/login:
+    post:
+      summary: Login de usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [dono, comprador]
+      responses:
+        '200':
+          description: Login realizado com sucesso
+        '401':
+          description: Credenciais inválidas
+  /auth/logout:
+    post:
+      summary: Logout do usuário
+      responses:
+        '200':
+          description: Logout realizado
+  /alimentos:
+    get:
+      summary: Listar alimentos em estoque
+      responses:
+        '200':
+          description: Lista de alimentos
+    post:
+      summary: Adicionar alimento ao estoque
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alimento'
+      responses:
+        '201':
+          description: Alimento adicionado
+  /alimentos/{id}:
+    put:
+      summary: Atualizar alimento
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alimento'
+      responses:
+        '200':
+          description: Alimento atualizado
+    delete:
+      summary: Remover alimento
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Alimento removido
+  /consumo:
+    get:
+      summary: Listar histórico de consumo
+      responses:
+        '200':
+          description: Lista de consumo
+    post:
+      summary: Registrar consumo de alimento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Consumo'
+      responses:
+        '201':
+          description: Consumo registrado
+  /progresso:
+    get:
+      summary: Consultar progresso do consumo
+      responses:
+        '200':
+          description: Progresso do consumo
+components:
+  schemas:
+    Alimento:
+      type: object
+      properties:
+        nome:
+          type: string
+        quantidade:
+          type: number
+        unidade:
+          type: string
+    Consumo:
+      type: object
+      properties:
+        alimentoId:
+          type: string
+        quantidade:
+          type: number
+        data:
+          type: string
+          format: date

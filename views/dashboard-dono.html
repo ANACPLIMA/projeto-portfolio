@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Dono</title>
+  <link rel="stylesheet" href="/css/bulma.min.css">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Bem-vindo, <%= user.username %> (Dono da Casa)</h1>
+      <a class="button is-light" href="/logout">Sair</a>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="notification is-danger" id="form-message">
+          <%= error %>
+        </div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="notification is-success" id="form-message-success">
+          <%= success %>
+        </div>
+      <% } %>
+      <h2 class="subtitle mt-4">Estoque de Alimentos</h2>
+      <h3 class="subtitle is-5">Adicionar novo alimento</h3>
+      <form action="/alimentos" method="POST">
+        <div class="field is-grouped">
+          <p class="control is-expanded">
+            <input class="input" type="text" name="nome" placeholder="Nome" required>
+          </p>
+          <p class="control">
+            <input class="input" type="number" name="quantidade" placeholder="Quantidade" step="any" required>
+          </p>
+          <p class="control">
+            <input class="input" type="text" name="unidade" placeholder="Unidade (ex: kg)" required>
+          </p>
+          <p class="control">
+            <button class="button is-primary" type="submit">Adicionar</button>
+          </p>
+        </div>
+      </form>
+
+      <script>
+        // Client-side validation for add-alimento form
+        (function(){
+          const form = document.querySelector('form[action="/alimentos"]');
+          if (!form) return;
+          form.addEventListener('submit', function(e){
+            const nome = form.querySelector('input[name="nome"]').value.trim();
+            const qtdEl = form.querySelector('input[name="quantidade"]');
+            const quantidade = parseFloat(qtdEl.value);
+            const unidade = form.querySelector('input[name="unidade"]').value.trim();
+
+            let errors = [];
+            if (!nome) errors.push('Nome é obrigatório.');
+            if (!unidade) errors.push('Unidade é obrigatória.');
+            if (isNaN(quantidade) || quantidade <= 0) errors.push('Quantidade deve ser um número maior que zero.');
+
+            // remove old message
+            const old = document.getElementById('client-form-error');
+            if (old) old.remove();
+
+            if (errors.length) {
+              e.preventDefault();
+              const container = document.createElement('div');
+              container.className = 'notification is-danger';
+              container.id = 'client-form-error';
+              container.innerText = errors.join(' ');
+              form.parentNode.insertBefore(container, form);
+              // scroll to message
+              container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          });
+        })();
+      </script>
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Quantidade</th>
+            <th>Unidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (alimentos || []).forEach(function(a) { %>
+            <tr>
+              <td><%= a.nome %></td>
+              <td><%= a.quantidade %></td>
+              <td><%= a.unidade %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <h2 class="subtitle mt-4">Progresso de Consumo</h2>
+      <% if (progresso) { %>
+        <pre><%= JSON.stringify(progresso, null, 2) %></pre>
+      <% } else { %>
+        <p>Nenhum dado de progresso disponível.</p>
+      <% } %>
+    </div>
+  </section>
+</body>
+</html>

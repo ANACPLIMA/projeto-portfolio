@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Comprador</title>
+  <link rel="stylesheet" href="/css/bulma.min.css">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Bem-vindo, <%= user.username %> (Comprador)</h1>
+      <a class="button is-light" href="/logout">Sair</a>
+      <% if (error) { %>
+        <div class="notification is-danger">
+          <%= error %>
+        </div>
+      <% } %>
+      <h2 class="subtitle mt-4">Estoque de Alimentos</h2>
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Quantidade</th>
+            <th>Unidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (alimentos || []).forEach(function(a) { %>
+            <tr>
+              <td><%= a.nome %></td>
+              <td><%= a.quantidade %></td>
+              <td><%= a.unidade %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <h2 class="subtitle mt-4">Progresso de Consumo</h2>
+      <% if (progresso) { %>
+        <pre><%= JSON.stringify(progresso, null, 2) %></pre>
+      <% } else { %>
+        <p>Nenhum dado de progresso disponível.</p>
+      <% } %>
+    </div>
+  </section>
+</body>
+</html>
