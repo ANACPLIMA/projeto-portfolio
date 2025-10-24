@@ -2,15 +2,28 @@
 const alimentoService = require('../service/alimentoService');
 
 exports.listar = (req, res) => {
-  res.json(alimentoService.listar());
+  try {
+    const alimentos = alimentoService.listar();
+    res.json(alimentos);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao listar alimentos' });
+  }
 };
 
 exports.adicionar = (req, res) => {
-  const { nome, quantidade, unidade } = req.body;
-  if (!nome || !quantidade || !unidade) return res.status(400).json({ message: 'Dados obrigatórios ausentes' });
-  const alimento = { id: String(Date.now()), nome, quantidade, unidade };
-  alimentoService.adicionar(alimento);
-  res.status(201).json(alimento);
+  try {
+    const { nome, quantidade, unidade } = req.body;
+    const alimento = { 
+      id: String(Date.now()), 
+      nome, 
+      quantidade, 
+      unidade 
+    };
+    const novoAlimento = alimentoService.adicionar(alimento);
+    res.status(201).json(novoAlimento);
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message || 'Erro ao adicionar alimento' });
+  }
 };
 
 exports.atualizar = (req, res) => {

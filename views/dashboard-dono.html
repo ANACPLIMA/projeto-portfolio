@@ -3,45 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Dono</title>
+  <title>Painel do Dono</title>
   <link rel="stylesheet" href="/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .card { margin-bottom: 1.5rem; }
+    .card-header-title { background-color: #f5f5f5; }
+    .summary-card { 
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .summary-card:hover { 
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(10, 10, 10, 0.1);
+    }
+    .notification { margin-bottom: 1.5rem; }
+
+    /* Estilos para edição inline */
+    .editable {
+      position: relative;
+      padding: 0.3rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .editable:hover {
+      background-color: #f5f5f5;
+    }
+
+    .edit-icon {
+      opacity: 0;
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: opacity 0.2s;
+      color: #3273dc;
+    }
+
+    .editable:hover .edit-icon {
+      opacity: 1;
+    }
+
+    .editing {
+      background-color: #fff;
+      border: 1px solid #3273dc;
+      padding: 0.2rem;
+    }
+
+    .editing input {
+      border: none;
+      outline: none;
+      width: 100%;
+      background: transparent;
+    }
+
+    /* Animações para a tabela */
+    .table tr {
+      transition: all 0.2s;
+    }
+
+    .table tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.01);
+    }
+
+    /* Estilo para o campo de busca */
+    #searchInput {
+      transition: all 0.3s;
+    }
+
+    #searchInput:focus {
+      box-shadow: 0 0 0 2px rgba(50, 115, 220, 0.25);
+    }
+
+    /* Melhorias visuais gerais */
+    .buttons.is-centered {
+      justify-content: center;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+
+    .select select {
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <span class="navbar-item">
+        <i class="fas fa-warehouse"></i>&nbsp;
+        Sistema de Dispensa
+      </span>
+    </div>
+    <div class="navbar-end">
+      <div class="navbar-item">
+        <div class="buttons">
+          <a class="button is-danger" href="/logout">
+            <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span>Sair</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
   <section class="section">
     <div class="container">
-      <h1 class="title">Bem-vindo, <%= user.username %> (Dono da Casa)</h1>
-      <a class="button is-light" href="/logout">Sair</a>
+      <h1 class="title">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span>Bem-vindo, <%= user.username %></span>
+      </h1>
       <% if (typeof error !== 'undefined' && error) { %>
         <div class="notification is-danger" id="form-message">
+          <button class="delete"></button>
+          <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
           <%= error %>
         </div>
       <% } %>
       <% if (typeof success !== 'undefined' && success) { %>
         <div class="notification is-success" id="form-message-success">
+          <button class="delete"></button>
+          <span class="icon"><i class="fas fa-check-circle"></i></span>
           <%= success %>
         </div>
       <% } %>
-      <h2 class="subtitle mt-4">Estoque de Alimentos</h2>
-      <h3 class="subtitle is-5">Adicionar novo alimento</h3>
-      <form action="/alimentos" method="POST">
-        <div class="field is-grouped">
-          <p class="control is-expanded">
-            <input class="input" type="text" name="nome" placeholder="Nome" required>
-          </p>
-          <p class="control">
-            <input class="input" type="number" name="quantidade" placeholder="Quantidade" step="any" required>
-          </p>
-          <p class="control">
-            <input class="input" type="text" name="unidade" placeholder="Unidade (ex: kg)" required>
-          </p>
-          <p class="control">
-            <button class="button is-primary" type="submit">Adicionar</button>
-          </p>
+
+      <div class="columns is-multiline">
+        <!-- Card de Sumário -->
+        <div class="column is-one-third">
+          <div class="card summary-card">
+            <div class="card-content has-text-centered">
+              <p class="heading">Total de Itens</p>
+              <p class="title"><%= (alimentos || []).length %></p>
+              <p class="heading">em estoque</p>
+            </div>
+          </div>
         </div>
-      </form>
+        <!-- Card de Progresso -->
+        <div class="column is-one-third">
+          <div class="card summary-card">
+            <div class="card-content has-text-centered">
+              <p class="heading">Total em Estoque</p>
+              <p class="title"><%= progresso ? progresso.total : 0 %></p>
+              <p class="heading">unidades</p>
+            </div>
+          </div>
+        </div>
+        <!-- Card de Consumo -->
+        <div class="column is-one-third">
+          <div class="card summary-card">
+            <div class="card-content has-text-centered">
+              <p class="heading">Total Consumido</p>
+              <p class="title"><%= progresso ? progresso.consumido : 0 %></p>
+              <p class="heading">unidades</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <span class="icon"><i class="fas fa-box"></i></span>
+            &nbsp;Gestão de Estoque
+          </p>
+        </header>
+        <div class="card-content">
+          <h2 class="subtitle">Adicionar Novo Item</h2>
+          <h2 class="subtitle">Adicionar Novo Item</h2>
+          <form action="/alimentos" method="POST" id="form-adicionar">
+            <div class="columns">
+              <div class="column is-5">
+                <div class="field">
+                  <label class="label">Nome do Alimento</label>
+                  <div class="control has-icons-left">
+                    <input class="input" type="text" name="nome" placeholder="Ex: Arroz, Feijão" required>
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-utensils"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="column is-3">
+                <div class="field">
+                  <label class="label">Quantidade</label>
+                  <div class="control has-icons-left">
+                    <input class="input" type="number" name="quantidade" placeholder="Ex: 5" step="0.1" min="0.1" required>
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-weight"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="column is-2">
+                <div class="field">
+                  <label class="label">Unidade</label>
+                  <div class="control">
+                    <div class="select is-fullwidth">
+                      <select name="unidade" required>
+                        <option value="">Selecione</option>
+                        <option value="kg">Quilograma (kg)</option>
+                        <option value="g">Grama (g)</option>
+                        <option value="l">Litro (l)</option>
+                        <option value="ml">Mililitro (ml)</option>
+                        <option value="un">Unidade (un)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="column is-2">
+                <div class="field">
+                  <label class="label">&nbsp;</label>
+                  <div class="control">
+                    <button class="button is-primary is-fullwidth" type="submit">
+                      <span class="icon"><i class="fas fa-plus"></i></span>
+                      <span>Adicionar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
 
       <script>
-        // Client-side validation for add-alimento form
+        // Validação do formulário no lado do cliente
         (function(){
           const form = document.querySelector('form[action="/alimentos"]');
           if (!form) return;
@@ -52,11 +242,11 @@
             const unidade = form.querySelector('input[name="unidade"]').value.trim();
 
             let errors = [];
-            if (!nome) errors.push('Nome é obrigatório.');
-            if (!unidade) errors.push('Unidade é obrigatória.');
-            if (isNaN(quantidade) || quantidade <= 0) errors.push('Quantidade deve ser um número maior que zero.');
+            if (!nome) errors.push('O nome do alimento é obrigatório.');
+            if (!unidade) errors.push('A unidade é obrigatória.');
+            if (isNaN(quantidade) || quantidade <= 0) errors.push('A quantidade deve ser um número maior que zero.');
 
-            // remove old message
+            // Remove mensagem antiga
             const old = document.getElementById('client-form-error');
             if (old) old.remove();
 
@@ -67,37 +257,391 @@
               container.id = 'client-form-error';
               container.innerText = errors.join(' ');
               form.parentNode.insertBefore(container, form);
-              // scroll to message
+              // Rola até a mensagem
               container.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           });
         })();
       </script>
-      <table class="table is-fullwidth is-striped">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Quantidade</th>
-            <th>Unidade</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% (alimentos || []).forEach(function(a) { %>
-            <tr>
-              <td><%= a.nome %></td>
-              <td><%= a.quantidade %></td>
-              <td><%= a.unidade %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
+          <div class="mt-5">
+            <h3 class="subtitle">Lista de Itens em Estoque</h3>
+            
+            <!-- Controles de busca e filtro -->
+            <div class="columns mb-3">
+              <div class="column is-6">
+                <div class="field has-addons">
+                  <div class="control has-icons-left is-expanded">
+                    <input class="input" type="text" id="searchInput" placeholder="Buscar alimentos...">
+                    <span class="icon is-small is-left">
+                      <i class="fas fa-search"></i>
+                    </span>
+                  </div>
+                  <div class="control">
+                    <button class="button is-info" onclick="clearSearch()">
+                      <span class="icon"><i class="fas fa-times"></i></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="column is-6">
+                <div class="field is-grouped is-grouped-right">
+                  <div class="control">
+                    <div class="select">
+                      <select id="sortSelect">
+                        <option value="nome-asc">Nome (A-Z)</option>
+                        <option value="nome-desc">Nome (Z-A)</option>
+                        <option value="quantidade-asc">Quantidade (Menor-Maior)</option>
+                        <option value="quantidade-desc">Quantidade (Maior-Menor)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="table is-fullwidth is-striped is-hoverable" id="alimentosTable">
+                <thead>
+                  <tr>
+                    <th><span class="icon"><i class="fas fa-tag"></i></span>&nbsp;Nome</th>
+                    <th><span class="icon"><i class="fas fa-weight"></i></span>&nbsp;Quantidade</th>
+                    <th><span class="icon"><i class="fas fa-ruler"></i></span>&nbsp;Unidade</th>
+                    <th class="has-text-centered"><span class="icon"><i class="fas fa-cogs"></i></span>&nbsp;Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if ((alimentos || []).length === 0) { %>
+                    <tr>
+                      <td colspan="4" class="has-text-centered">
+                        <p class="has-text-grey">
+                          <span class="icon"><i class="fas fa-info-circle"></i></span>
+                          Nenhum item cadastrado ainda.
+                        </p>
+                      </td>
+                    </tr>
+                  <% } else { %>
+                    <% alimentos.forEach(function(a) { %>
+                      <tr data-id="<%= a.id %>">
+                        <td>
+                          <div class="editable" onclick="makeEditable(this, 'nome')">
+                            <strong><%= a.nome %></strong>
+                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="editable" onclick="makeEditable(this, 'quantidade')">
+                            <%= a.quantidade %>
+                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="editable" onclick="makeEditable(this, 'unidade')">
+                            <%= a.unidade %>
+                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
+                          </div>
+                        </td>
+                        <td class="has-text-centered">
+                          <div class="buttons is-centered">
+                            <button class="button is-info is-small mr-2" onclick="saveChanges('<%= a.id %>')" style="display: none;">
+                              <span class="icon"><i class="fas fa-save"></i></span>
+                              <span>Salvar</span>
+                            </button>
+                            <form action="/alimentos/<%= a.id %>/delete" method="POST" style="display: inline;">
+                              <button class="button is-danger is-small" type="submit" 
+                                onclick="return confirm('Tem certeza que deseja remover <%= a.nome %> do estoque?')">
+                                <span class="icon"><i class="fas fa-trash"></i></span>
+                                <span>Remover</span>
+                              </button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
       <h2 class="subtitle mt-4">Progresso de Consumo</h2>
       <% if (progresso) { %>
-        <pre><%= JSON.stringify(progresso, null, 2) %></pre>
+        <div class="box">
+          <p><strong>Total em Estoque:</strong> <%= progresso.total %></p>
+          <p><strong>Total Consumido:</strong> <%= progresso.consumido %></p>
+        </div>
       <% } else { %>
-        <p>Nenhum dado de progresso disponível.</p>
+        <p>Nenhum dado de progresso disponível no momento.</p>
       <% } %>
     </div>
   </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Variáveis globais para a tabela
+      let alimentosData = [];
+      const table = document.getElementById('alimentosTable');
+      
+      // Inicializa os dados da tabela
+      const initializeTableData = () => {
+        const rows = table.querySelectorAll('tbody tr');
+        alimentosData = Array.from(rows).map(row => ({
+          element: row,
+          nome: row.cells[0].textContent.trim(),
+          quantidade: parseFloat(row.cells[1].textContent),
+          unidade: row.cells[2].textContent.trim()
+        }));
+      };
+
+      // Função de busca
+      const searchTable = (searchTerm) => {
+        searchTerm = searchTerm.toLowerCase();
+        alimentosData.forEach(item => {
+          const matches = item.nome.toLowerCase().includes(searchTerm) ||
+                         item.unidade.toLowerCase().includes(searchTerm);
+          item.element.style.display = matches ? '' : 'none';
+        });
+      };
+
+      // Função de ordenação
+      const sortTable = (criteria) => {
+        const [field, direction] = criteria.split('-');
+        const multiplier = direction === 'asc' ? 1 : -1;
+
+        alimentosData.sort((a, b) => {
+          if (field === 'nome') {
+            return multiplier * a.nome.localeCompare(b.nome);
+          } else if (field === 'quantidade') {
+            return multiplier * (a.quantidade - b.quantidade);
+          }
+          return 0;
+        });
+
+        // Reordena os elementos na tabela
+        const tbody = table.querySelector('tbody');
+        alimentosData.forEach(item => {
+          tbody.appendChild(item.element);
+        });
+      };
+
+      // Event Listeners
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchTable(e.target.value);
+        });
+      }
+
+      const sortSelect = document.getElementById('sortSelect');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+          sortTable(e.target.value);
+        });
+      }
+
+      // Inicializa a tabela
+      initializeTableData();
+
+      // Função para limpar busca
+      window.clearSearch = () => {
+        if (searchInput) {
+          searchInput.value = '';
+          searchTable('');
+        }
+      };
+
+      // Funções para edição inline
+      window.makeEditable = (element, field) => {
+        const currentValue = element.textContent.trim();
+        const row = element.closest('tr');
+        const saveButton = row.querySelector('.button.is-info');
+        
+        // Mostra o botão de salvar
+        saveButton.style.display = 'inline-flex';
+
+        // Cria o input apropriado baseado no campo
+        let input;
+        if (field === 'quantidade') {
+          input = document.createElement('input');
+          input.type = 'number';
+          input.step = '0.1';
+          input.min = '0.1';
+          input.value = currentValue;
+        } else if (field === 'unidade') {
+          input = document.createElement('select');
+          ['kg', 'g', 'l', 'ml', 'un'].forEach(unit => {
+            const option = document.createElement('option');
+            option.value = unit;
+            option.textContent = unit;
+            option.selected = unit === currentValue;
+            input.appendChild(option);
+          });
+        } else {
+          input = document.createElement('input');
+          input.type = 'text';
+          input.value = currentValue;
+        }
+
+        input.className = 'input is-small';
+        input.dataset.originalValue = currentValue;
+        input.dataset.field = field;
+
+        // Substitui o conteúdo pelo input
+        const div = document.createElement('div');
+        div.className = 'editing';
+        div.appendChild(input);
+        element.innerHTML = '';
+        element.appendChild(div);
+        element.classList.add('editing');
+
+        // Foca no input
+        input.focus();
+
+        // Evento para cancelar edição com Esc
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            cancelEdit(element);
+          }
+        });
+      };
+
+      window.cancelEdit = (element) => {
+        const input = element.querySelector('input, select');
+        const originalValue = input.dataset.originalValue;
+        element.innerHTML = `
+          <strong>${originalValue}</strong>
+          <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
+        `;
+        element.classList.remove('editing');
+      };
+
+      window.saveChanges = async (id) => {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        const editingFields = row.querySelectorAll('.editing');
+        const updates = {};
+
+        editingFields.forEach(field => {
+          const input = field.querySelector('input, select');
+          updates[input.dataset.field] = input.value;
+        });
+
+        try {
+          const response = await fetch(`/alimentos/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updates)
+          });
+
+          if (response.ok) {
+            // Atualiza os valores na tabela
+            editingFields.forEach(field => {
+              const input = field.querySelector('input, select');
+              field.innerHTML = `
+                <strong>${input.value}</strong>
+                <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
+              `;
+              field.classList.remove('editing');
+            });
+
+            // Esconde o botão de salvar
+            row.querySelector('.button.is-info').style.display = 'none';
+
+            // Mostra mensagem de sucesso
+            const successMessage = document.createElement('div');
+            successMessage.className = 'notification is-success';
+            successMessage.innerHTML = `
+              <button class="delete"></button>
+              <span class="icon"><i class="fas fa-check-circle"></i></span>
+              Alimento atualizado com sucesso!
+            `;
+            document.querySelector('.container').insertBefore(successMessage, document.querySelector('.columns'));
+            closeNotifications();
+          } else {
+            throw new Error('Erro ao atualizar alimento');
+          }
+        } catch (error) {
+          // Mostra mensagem de erro
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'notification is-danger';
+          errorMessage.innerHTML = `
+            <button class="delete"></button>
+            <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
+            Erro ao atualizar alimento: ${error.message}
+          `;
+          document.querySelector('.container').insertBefore(errorMessage, document.querySelector('.columns'));
+          closeNotifications();
+        }
+      };
+
+      // Função para fechar notificações
+      const closeNotifications = () => {
+        document.querySelectorAll('.notification .delete').forEach(button => {
+          button.addEventListener('click', () => {
+            button.parentElement.remove();
+          });
+        });
+      };
+
+      // Inicializa os listeners de notificações
+      closeNotifications();
+
+      // Validação do formulário
+      const form = document.getElementById('form-adicionar');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          const nome = form.querySelector('input[name="nome"]').value.trim();
+          const quantidade = parseFloat(form.querySelector('input[name="quantidade"]').value);
+          const unidade = form.querySelector('select[name="unidade"]').value;
+
+          let isValid = true;
+          let errors = [];
+
+          if (!nome) {
+            errors.push('O nome do alimento é obrigatório');
+            isValid = false;
+          }
+
+          if (isNaN(quantidade) || quantidade <= 0) {
+            errors.push('A quantidade deve ser um número maior que zero');
+            isValid = false;
+          }
+
+          if (!unidade) {
+            errors.push('Selecione uma unidade de medida');
+            isValid = false;
+          }
+
+          if (!isValid) {
+            e.preventDefault();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'notification is-danger';
+            errorDiv.innerHTML = `
+              <button class="delete"></button>
+              <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
+              ${errors.join(', ')}
+            `;
+            form.parentElement.insertBefore(errorDiv, form);
+            closeNotifications();
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
+
+      // Animações suaves para os cards
+      document.querySelectorAll('.summary-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          card.style.transform = 'translateY(-5px)';
+          card.style.boxShadow = '0 8px 16px rgba(10, 10, 10, 0.1)';
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'translateY(0)';
+          card.style.boxShadow = '';
+        });
+      });
+    });
+  </script>
 </body>
 </html>

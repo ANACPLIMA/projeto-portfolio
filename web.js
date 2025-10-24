@@ -6,6 +6,24 @@ const app = express();
 const PORT = 4000;
 const API_URL = 'http://localhost:3000';
 
+// Configuração do Axios com timeout e retry
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  timeout: 5000, // 5 segundos
+  headers: {'Content-Type': 'application/json'}
+});
+
+// Interceptor para retry em caso de erro
+axiosInstance.interceptors.response.use(null, async (error) => {
+  if (error.config && error.config.__retryCount < 3) {
+    error.config.__retryCount = error.config.__retryCount || 0;
+    error.config.__retryCount += 1;
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1 segundo
+    return axiosInstance(error.config);
+  }
+  return Promise.reject(error);
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -29,7 +47,14 @@ const users = [
 
 function requireAuth(role) {
   return (req, res, next) => {
-    if (!req.session.user || (role && req.session.user.role !== role)) {
+    // Verifica se o usuário está autenticado
+    if (!req.session.user) {
+      req.session.formError = 'Por favor, faça login para continuar.';
+      return res.redirect('/');
+    }
+    // Verifica se o usuário tem a role necessária
+    if (role && req.session.user.role !== role) {
+      req.session.formError = 'Você não tem permissão para acessar esta página.';
       return res.redirect('/');
     }
     next();
@@ -94,6 +119,32 @@ app.post('/alimentos', requireAuth('dono'), async (req, res) => {
   }
 });
 
+// Rota para remover alimento
+app.post('/alimentos/:id/delete', requireAuth('dono'), async (req, res) => {
+  try {
+    await axios.delete(`${API_URL}/alimentos/${req.params.id}`);
+    req.session.formSuccess = 'Alimento removido com sucesso.';
+    res.redirect('/dashboard-dono');
+  } catch (err) {
+    let msg = 'Erro ao remover alimento.';
+    if (err.response && err.response.data && err.response.data.message) msg = err.response.data.message;
+    req.session.formError = msg;
+    res.redirect('/dashboard-dono');
+  }
+});
+
+// Rota para atualizar alimento
+app.put('/alimentos/:id', requireAuth('dono'), async (req, res) => {
+  try {
+    const response = await axios.put(`${API_URL}/alimentos/${req.params.id}`, req.body);
+    res.json(response.data);
+  } catch (err) {
+    let msg = 'Erro ao atualizar alimento.';
+    if (err.response && err.response.data && err.response.data.message) msg = err.response.data.message;
+    res.status(err.response?.status || 500).json({ message: msg });
+  }
+});
+
 app.get('/dashboard-comprador', requireAuth('comprador'), async (req, res) => {
   try {
     const [alimentosRes, progressoRes] = await Promise.all([
@@ -110,6 +161,21 @@ app.get('/dashboard-comprador', requireAuth('comprador'), async (req, res) => {
     let msg = 'Erro ao buscar dados da API.';
     if (err.response && err.response.data && err.response.data.message) msg = err.response.data.message;
     res.render('dashboard-comprador.html', { user: req.session.user, alimentos: [], progresso: null, error: msg });
+  }
+});
+
+// Middleware de erro global
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  const errorMessage = process.env.NODE_ENV === 'development' 
+    ? err.message 
+    : 'Ocorreu um erro interno. Por favor, tente novamente mais tarde.';
+  
+  if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    res.status(500).json({ message: errorMessage });
+  } else {
+    req.session.formError = errorMessage;
+    res.redirect('back');
   }
 });
 
