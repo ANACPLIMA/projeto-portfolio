@@ -146,26 +146,7 @@
             </div>
           </div>
         </div>
-        <!-- Card de Progresso -->
-        <div class="column is-one-third">
-          <div class="card summary-card">
-            <div class="card-content has-text-centered">
-              <p class="heading">Total em Estoque</p>
-              <p class="title"><%= progresso ? progresso.total : 0 %></p>
-              <p class="heading">unidades</p>
-            </div>
-          </div>
-        </div>
-        <!-- Card de Consumo -->
-        <div class="column is-one-third">
-          <div class="card summary-card">
-            <div class="card-content has-text-centered">
-              <p class="heading">Total Consumido</p>
-              <p class="title"><%= progresso ? progresso.consumido : 0 %></p>
-              <p class="heading">unidades</p>
-            </div>
-          </div>
-        </div>
+        <!-- (Removidos cards de progresso/consumo) -->
       </div>
 
       <div class="card">
@@ -326,37 +307,18 @@
                     <% alimentos.forEach(function(a) { %>
                       <tr data-id="<%= a.id %>">
                         <td>
-                          <div class="editable" onclick="makeEditable(this, 'nome')">
-                            <strong><%= a.nome %></strong>
-                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
-                          </div>
+                          <strong><%= a.nome %></strong>
                         </td>
-                        <td>
-                          <div class="editable" onclick="makeEditable(this, 'quantidade')">
-                            <%= a.quantidade %>
-                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="editable" onclick="makeEditable(this, 'unidade')">
-                            <%= a.unidade %>
-                            <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
-                          </div>
-                        </td>
+                        <td><%= a.quantidade %></td>
+                        <td><%= a.unidade %></td>
                         <td class="has-text-centered">
-                          <div class="buttons is-centered">
-                            <button class="button is-info is-small mr-2" onclick="saveChanges('<%= a.id %>')" style="display: none;">
-                              <span class="icon"><i class="fas fa-save"></i></span>
-                              <span>Salvar</span>
+                          <form action="/alimentos/<%= a.id %>/delete" method="POST" style="display: inline;">
+                            <button class="button is-danger is-small" type="submit" 
+                              onclick="return confirm('Tem certeza que deseja remover <%= a.nome %> do estoque?')">
+                              <span class="icon"><i class="fas fa-trash"></i></span>
+                              <span>Remover</span>
                             </button>
-                            <form action="/alimentos/<%= a.id %>/delete" method="POST" style="display: inline;">
-                              <button class="button is-danger is-small" type="submit" 
-                                onclick="return confirm('Tem certeza que deseja remover <%= a.nome %> do estoque?')">
-                                <span class="icon"><i class="fas fa-trash"></i></span>
-                                <span>Remover</span>
-                              </button>
-                            </form>
-                          </div>
+                          </form>
                         </td>
                       </tr>
                     <% }) %>
@@ -367,15 +329,7 @@
           </div>
         </div>
       </div>
-      <h2 class="subtitle mt-4">Progresso de Consumo</h2>
-      <% if (progresso) { %>
-        <div class="box">
-          <p><strong>Total em Estoque:</strong> <%= progresso.total %></p>
-          <p><strong>Total Consumido:</strong> <%= progresso.consumido %></p>
-        </div>
-      <% } else { %>
-        <p>Nenhum dado de progresso disponível no momento.</p>
-      <% } %>
+      <!-- Seção de progresso removida (endpoint /progresso eliminado) -->
     </div>
   </section>
 
@@ -453,130 +407,7 @@
         }
       };
 
-      // Funções para edição inline
-      window.makeEditable = (element, field) => {
-        const currentValue = element.textContent.trim();
-        const row = element.closest('tr');
-        const saveButton = row.querySelector('.button.is-info');
-        
-        // Mostra o botão de salvar
-        saveButton.style.display = 'inline-flex';
-
-        // Cria o input apropriado baseado no campo
-        let input;
-        if (field === 'quantidade') {
-          input = document.createElement('input');
-          input.type = 'number';
-          input.step = '0.1';
-          input.min = '0.1';
-          input.value = currentValue;
-        } else if (field === 'unidade') {
-          input = document.createElement('select');
-          ['kg', 'g', 'l', 'ml', 'un'].forEach(unit => {
-            const option = document.createElement('option');
-            option.value = unit;
-            option.textContent = unit;
-            option.selected = unit === currentValue;
-            input.appendChild(option);
-          });
-        } else {
-          input = document.createElement('input');
-          input.type = 'text';
-          input.value = currentValue;
-        }
-
-        input.className = 'input is-small';
-        input.dataset.originalValue = currentValue;
-        input.dataset.field = field;
-
-        // Substitui o conteúdo pelo input
-        const div = document.createElement('div');
-        div.className = 'editing';
-        div.appendChild(input);
-        element.innerHTML = '';
-        element.appendChild(div);
-        element.classList.add('editing');
-
-        // Foca no input
-        input.focus();
-
-        // Evento para cancelar edição com Esc
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            cancelEdit(element);
-          }
-        });
-      };
-
-      window.cancelEdit = (element) => {
-        const input = element.querySelector('input, select');
-        const originalValue = input.dataset.originalValue;
-        element.innerHTML = `
-          <strong>${originalValue}</strong>
-          <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
-        `;
-        element.classList.remove('editing');
-      };
-
-      window.saveChanges = async (id) => {
-        const row = document.querySelector(`tr[data-id="${id}"]`);
-        const editingFields = row.querySelectorAll('.editing');
-        const updates = {};
-
-        editingFields.forEach(field => {
-          const input = field.querySelector('input, select');
-          updates[input.dataset.field] = input.value;
-        });
-
-        try {
-          const response = await fetch(`/alimentos/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updates)
-          });
-
-          if (response.ok) {
-            // Atualiza os valores na tabela
-            editingFields.forEach(field => {
-              const input = field.querySelector('input, select');
-              field.innerHTML = `
-                <strong>${input.value}</strong>
-                <span class="icon is-small edit-icon"><i class="fas fa-edit"></i></span>
-              `;
-              field.classList.remove('editing');
-            });
-
-            // Esconde o botão de salvar
-            row.querySelector('.button.is-info').style.display = 'none';
-
-            // Mostra mensagem de sucesso
-            const successMessage = document.createElement('div');
-            successMessage.className = 'notification is-success';
-            successMessage.innerHTML = `
-              <button class="delete"></button>
-              <span class="icon"><i class="fas fa-check-circle"></i></span>
-              Alimento atualizado com sucesso!
-            `;
-            document.querySelector('.container').insertBefore(successMessage, document.querySelector('.columns'));
-            closeNotifications();
-          } else {
-            throw new Error('Erro ao atualizar alimento');
-          }
-        } catch (error) {
-          // Mostra mensagem de erro
-          const errorMessage = document.createElement('div');
-          errorMessage.className = 'notification is-danger';
-          errorMessage.innerHTML = `
-            <button class="delete"></button>
-            <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
-            Erro ao atualizar alimento: ${error.message}
-          `;
-          document.querySelector('.container').insertBefore(errorMessage, document.querySelector('.columns'));
-          closeNotifications();
-        }
-      };
+      // Edição inline removida: endpoint PUT /alimentos/:id não existe mais
 
       // Função para fechar notificações
       const closeNotifications = () => {

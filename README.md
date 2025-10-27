@@ -18,11 +18,10 @@ A aplicação utiliza uma API REST documentada em `swagger.yaml` e roda em Expre
 - `POST /auth/logout` — Logout
 - `GET /alimentos` — Listar alimentos
 - `POST /alimentos` — Adicionar alimento
-- `PUT /alimentos/{id}` — Atualizar alimento
 - `DELETE /alimentos/{id}` — Remover alimento
-- `GET /consumo` — Listar histórico de consumo
-- `POST /consumo` — Registrar consumo
-- `GET /progresso` — Consultar progresso
+ - `GET /alimentos` — Listar alimentos
+ - `POST /alimentos` — Adicionar alimento
+ - `DELETE /alimentos/{id}` — Remover alimento
 
 Veja detalhes completos no arquivo [`swagger.yaml`](./swagger.yaml).
 
@@ -70,11 +69,10 @@ O frontend roda em Express na porta 4000 e consome a API REST que roda em http:/
 - `POST /auth/logout` — Logout
 - `GET /alimentos` — Listar alimentos
 - `POST /alimentos` — Adicionar alimento
-- `PUT /alimentos/{id}` — Atualizar alimento
 - `DELETE /alimentos/{id}` — Remover alimento
-- `GET /consumo` — Listar histórico de consumo
-- `POST /consumo` — Registrar consumo
-- `GET /progresso` — Consultar progresso
+ - `GET /alimentos` — Listar alimentos
+ - `POST /alimentos` — Adicionar alimento
+ - `DELETE /alimentos/{id}` — Remover alimento
 
 Detalhes e formatos de resposta estão em `resources/swagger.yaml`.
 

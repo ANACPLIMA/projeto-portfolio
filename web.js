@@ -83,10 +83,7 @@ app.get('/logout', (req, res) => {
 
 app.get('/dashboard-dono', requireAuth('dono'), async (req, res) => {
   try {
-    const [alimentosRes, progressoRes] = await Promise.all([
-      axios.get(`${API_URL}/alimentos`),
-      axios.get(`${API_URL}/progresso`)
-    ]);
+    const alimentosRes = await axios.get(`${API_URL}/alimentos`);
     const formError = req.session.formError || null;
     const formSuccess = req.session.formSuccess || null;
     delete req.session.formError;
@@ -94,7 +91,7 @@ app.get('/dashboard-dono', requireAuth('dono'), async (req, res) => {
     res.render('dashboard-dono.html', {
       user: req.session.user,
       alimentos: alimentosRes.data,
-      progresso: progressoRes.data,
+      progresso: null,
       error: formError,
       success: formSuccess
     });
@@ -133,28 +130,15 @@ app.post('/alimentos/:id/delete', requireAuth('dono'), async (req, res) => {
   }
 });
 
-// Rota para atualizar alimento
-app.put('/alimentos/:id', requireAuth('dono'), async (req, res) => {
-  try {
-    const response = await axios.put(`${API_URL}/alimentos/${req.params.id}`, req.body);
-    res.json(response.data);
-  } catch (err) {
-    let msg = 'Erro ao atualizar alimento.';
-    if (err.response && err.response.data && err.response.data.message) msg = err.response.data.message;
-    res.status(err.response?.status || 500).json({ message: msg });
-  }
-});
+// Nota: endpoint de atualização (PUT /alimentos/:id) foi removido na refatoração.
 
 app.get('/dashboard-comprador', requireAuth('comprador'), async (req, res) => {
   try {
-    const [alimentosRes, progressoRes] = await Promise.all([
-      axios.get(`${API_URL}/alimentos`),
-      axios.get(`${API_URL}/progresso`)
-    ]);
+    const alimentosRes = await axios.get(`${API_URL}/alimentos`);
     res.render('dashboard-comprador.html', {
       user: req.session.user,
       alimentos: alimentosRes.data,
-      progresso: progressoRes.data,
+      progresso: null,
       error: null
     });
   } catch (err) {

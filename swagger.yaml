@@ -52,23 +52,7 @@ paths:
         '201':
           description: Alimento adicionado
   /alimentos/{id}:
-    put:
-      summary: Atualizar alimento
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Alimento'
-      responses:
-        '200':
-          description: Alimento atualizado
+    # PUT /alimentos/{id} removido
     delete:
       summary: Remover alimento
       parameters:
@@ -80,29 +64,7 @@ paths:
       responses:
         '204':
           description: Alimento removido
-  /consumo:
-    get:
-      summary: Listar histórico de consumo
-      responses:
-        '200':
-          description: Lista de consumo
-    post:
-      summary: Registrar consumo de alimento
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Consumo'
-      responses:
-        '201':
-          description: Consumo registrado
-  /progresso:
-    get:
-      summary: Consultar progresso do consumo
-      responses:
-        '200':
-          description: Progresso do consumo
+  # Endpoints /consumo and /progresso removed
 components:
   schemas:
     Alimento:
@@ -114,13 +76,4 @@ components:
           type: number
         unidade:
           type: string
-    Consumo:
-      type: object
-      properties:
-        alimentoId:
-          type: string
-        quantidade:
-          type: number
-        data:
-          type: string
-          format: date
+    # Consumo schema removed

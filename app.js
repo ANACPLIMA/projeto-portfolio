@@ -11,8 +11,9 @@ app.use(bodyParser.json());
 // Rotas
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/alimentos', require('./routes/alimentoRoutes'));
-app.use('/consumo', require('./routes/consumoRoutes'));
-app.use('/progresso', require('./routes/progressoRoutes'));
+// Removidos endpoints de consumo e progresso conforme refatoração
+// app.use('/consumo', require('./routes/consumoRoutes'));
+// app.use('/progresso', require('./routes/progressoRoutes'));
 
 // Swagger UI
 const swaggerUi = require('swagger-ui-express');
