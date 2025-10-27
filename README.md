@@ -19,9 +19,11 @@ A aplicação utiliza uma API REST documentada em `swagger.yaml` e roda em Expre
 - `GET /alimentos` — Listar alimentos
 - `POST /alimentos` — Adicionar alimento
 - `DELETE /alimentos/{id}` — Remover alimento
- - `GET /alimentos` — Listar alimentos
- - `POST /alimentos` — Adicionar alimento
- - `DELETE /alimentos/{id}` — Remover alimento
+
+Detalhes:
+- `GET /alimentos` — Lista todos os alimentos em estoque.
+- `POST /alimentos` — Cria um novo alimento (body: nome, quantidade, unidade).
+- `DELETE /alimentos/{id}` — Remove um alimento pelo ID.
 
 Veja detalhes completos no arquivo [`swagger.yaml`](./swagger.yaml).
 
