@@ -25,12 +25,18 @@
     "axios": "^1.12.2",
     "body-parser": "^2.2.0",
     "bulma": "^1.0.4",
+    "concurrently": "^8.0.1",
     "cors": "^2.8.5",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "moca": "^0.4.3",
     "swagger-ui-express": "^5.0.1",
-    "yamljs": "^0.3.0",
-    "concurrently": "^8.0.1"
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "chai": "^6.2.0",
+    "mocha": "^11.7.4",
+    "supertest": "^7.1.4"
   }
 }
