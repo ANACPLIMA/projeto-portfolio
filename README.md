@@ -14,11 +14,20 @@ A aplicação utiliza uma API REST documentada em `swagger.yaml` e roda em Expre
 - Mensagens de erro amigáveis para falhas de API
 
 ## Endpoints principais da API
+
+## Endpoints principais da API
 - `POST /auth/login` — Login de usuário
 - `POST /auth/logout` — Logout
 - `GET /alimentos` — Listar alimentos
 - `POST /alimentos` — Adicionar alimento
 - `DELETE /alimentos/{id}` — Remover alimento
+
+## Regras de Negócio
+1. Apenas usuários autenticados podem acessar funcionalidades protegidas da API (login obrigatório).
+2. Somente o Dono da Casa pode adicionar, editar ou remover alimentos do estoque.
+3. Não é permitido registrar consumo de alimentos inexistentes ou com quantidade insuficiente em estoque.
+4. O Comprador pode apenas consultar o estoque e progresso, sem alterar dados.
+5. Ao remover um alimento, ele deve ser excluído do estoque e não aparecer nas consultas subsequentes.
 
 Detalhes:
 - `GET /alimentos` — Lista todos os alimentos em estoque.

@@ -4,13 +4,7 @@ app.get('/consumo', (req, res) => res.json(consumo));
 app.post('/consumo', (req, res) => {
     const { alimentoId, quantidade, data } = req.body;
     const alimento = alimentos.find(a => a.id === alimentoId);
-if (!alimento) return res.status(404).json({ message: 'Alimento não encontrado' });
-    if (alimento.quantidade < quantidade) return res.status(400).json({ message: 'Quantidade insuficiente' });
-    alimento.quantidade -= quantidade;
-    progresso.consumido += quantidade;
-    consumo.push({ alimentoId, quantidade, data });
-    res.status(201).json({ alimentoId, quantidade, data });
-    
+
 });
 describe('GET /consumo', () => {
     it('deve retornar o histórico de consumo', async () => {
@@ -23,31 +17,34 @@ describe('GET /consumo', () => {
 describe('POST /consumo', () => {
     it('deve registrar consumo de alimento existente', async () => {
         // Adiciona alimento para garantir que existe
-        const novoAlimento = { nome: 'Açúcar', quantidade: 5, unidade: 'kg' };
+        const novoAlimento = { nome: 'Açúcar', quantidade: 10, unidade: 'kg' };
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const alimentoId = addRes.body.id;
-        const consumoData = { alimentoId, quantidade: 2, data: '2025-10-28' };
+        const consumoData = { alimentoId, quantidade: 10, data: '2025-10-28' };
         const res = await request(app).post('/consumo').send(consumoData);
+
         expect(res.statusCode).toBe(201);
         expect(res.body).toHaveProperty('alimentoId', alimentoId);
         expect(res.body).toHaveProperty('quantidade', 2);
         expect(res.body).toHaveProperty('data', '2025-10-28');
     });
 
-    it('deve retornar erro ao consumir alimento inexistente', async () => {
+    it('deve retornar erro 404 ao consumir alimento inexistente', async () => {
         const consumoData = { alimentoId: '999999', quantidade: 1, data: '2025-10-28' };
         const res = await request(app).post('/consumo').send(consumoData);
+
         expect(res.statusCode).toBe(404);
         expect(res.body).toHaveProperty('message', 'Alimento não encontrado');
     });
 
-    it('deve retornar erro ao consumir quantidade maior que disponível', async () => {
+    it('deve retornar erro 400 ao consumir quantidade maior que disponível', async () => {
         // Adiciona alimento para garantir que existe
         const novoAlimento = { nome: 'Café', quantidade: 1, unidade: 'kg' };
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const alimentoId = addRes.body.id;
         const consumoData = { alimentoId, quantidade: 10, data: '2025-10-28' };
         const res = await request(app).post('/consumo').send(consumoData);
+
         expect(res.statusCode).toBe(400);
         expect(res.body).toHaveProperty('message', 'Quantidade insuficiente');
     });
@@ -63,6 +60,7 @@ app.delete('/alimentos/:id', (req, res) => {
 describe('POST /auth/logout', () => {
     it('deve realizar logout com sucesso', async () => {
         const res = await request(app).post('/auth/logout');
+
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('message', 'Logout realizado');
     });
@@ -75,11 +73,13 @@ describe('DELETE /alimentos/:id', () => {
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const id = addRes.body.id;
         const res = await request(app).delete(`/alimentos/${id}`);
+
         expect(res.statusCode).toBe(204);
     });
 
     it('deve retornar 404 ao tentar remover alimento inexistente', async () => {
         const res = await request(app).delete('/alimentos/999999');
+
         expect(res.statusCode).toBe(404);
         expect(res.body).toHaveProperty('message', 'Alimento não encontrado');
     });
@@ -100,6 +100,7 @@ describe('POST /alimentos', () => {
         const res = await request(app)
             .post('/alimentos')
             .send(novoAlimento);
+
         expect(res.statusCode).toBe(201);
         expect(res.body).toHaveProperty('nome', 'Macarrão');
         expect(res.body).toHaveProperty('quantidade', 3);
@@ -111,6 +112,7 @@ describe('POST /alimentos', () => {
 describe('GET /progresso', () => {
     it('deve retornar o progresso atual', async () => {
         const res = await request(app).get('/progresso');
+
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('total');
         expect(res.body).toHaveProperty('consumido');
@@ -143,8 +145,9 @@ app.post('/auth/login', (req, res) => {
 });
 
 describe('GET /alimentos', () => {
-    it('deve retornar a lista de alimentos', async () => {
+    it('deve retornar 200 a lista de alimentos', async () => {
         const res = await request(app).get('/alimentos');
+
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
         expect(res.body.length).toBeGreaterThan(0);
