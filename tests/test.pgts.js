@@ -1,6 +1,6 @@
 const request = require('supertest')('http://localhost:3000');
 const { expect } = require('chai');
- 
+
 describe('Login', () => {
     describe('POST /auth/login', () => {
         it('Deve retornar 200 com o msg de sucesso', async () => {
