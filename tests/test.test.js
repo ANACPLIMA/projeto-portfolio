@@ -1,5 +1,21 @@
 let consumo = [];
 
+app.post('/auth/logout', (req, res) => res.status(200).json({ message: 'Logout realizado' }));
+app.delete('/alimentos/:id', (req, res) => {
+    
+    const idx = alimentos.findIndex(a => a.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ message: 'Alimento não encontrado' });
+    alimentos.splice(idx, 1);
+    res.status(204).send();
+});
+describe('POST /auth/logout', () => {
+    it('Deve retornar 200 ao realizar logout com sucesso', async () => {
+        const resposta = await request(app).post('/auth/logout');
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('message', 'Logout realizado');
+    });
+});
 app.get('/consumo', (req, res) => res.json(consumo));
 app.post('/consumo', (req, res) => {
     const { alimentoId, quantidade, data } = req.body;
@@ -7,21 +23,22 @@ app.post('/consumo', (req, res) => {
 
 });
 describe('GET /consumo', () => {
-    it('deve retornar o histórico de consumo', async () => {
-        const res = await request(app).get('/consumo');
-        expect(res.statusCode).toBe(200);
+    it('Deve retornar 200 com o histórico de consumo', async () => {
+        const resposta = await request(app).get('/consumo');
+
+        expect(resposta.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
     });
 });
 
 describe('POST /consumo', () => {
-    it('deve registrar consumo de alimento existente', async () => {
+    it('Deve retornar 201 ao registrar consumo de alimento existente', async () => {
         // Adiciona alimento para garantir que existe
         const novoAlimento = { nome: 'Açúcar', quantidade: 10, unidade: 'kg' };
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const alimentoId = addRes.body.id;
         const consumoData = { alimentoId, quantidade: 10, data: '2025-10-28' };
-        const res = await request(app).post('/consumo').send(consumoData);
+        const resposta = await request(app).post('/consumo').send(consumoData);
 
         expect(res.statusCode).toBe(201);
         expect(res.body).toHaveProperty('alimentoId', alimentoId);
@@ -29,56 +46,40 @@ describe('POST /consumo', () => {
         expect(res.body).toHaveProperty('data', '2025-10-28');
     });
 
-    it('deve retornar erro 404 ao consumir alimento inexistente', async () => {
+    it('Deve retornar erro 404 ao consumir alimento inexistente', async () => {
         const consumoData = { alimentoId: '999999', quantidade: 1, data: '2025-10-28' };
-        const res = await request(app).post('/consumo').send(consumoData);
+        const resposta = await request(app).post('/consumo').send(consumoData);
 
         expect(res.statusCode).toBe(404);
         expect(res.body).toHaveProperty('message', 'Alimento não encontrado');
     });
 
-    it('deve retornar erro 400 ao consumir quantidade maior que disponível', async () => {
+    it('Deve retornar erro 400 ao consumir quantidade maior que disponível', async () => {
         // Adiciona alimento para garantir que existe
         const novoAlimento = { nome: 'Café', quantidade: 1, unidade: 'kg' };
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const alimentoId = addRes.body.id;
         const consumoData = { alimentoId, quantidade: 10, data: '2025-10-28' };
-        const res = await request(app).post('/consumo').send(consumoData);
+        const resposta = await request(app).post('/consumo').send(consumoData);
 
         expect(res.statusCode).toBe(400);
         expect(res.body).toHaveProperty('message', 'Quantidade insuficiente');
     });
 });
-app.post('/auth/logout', (req, res) => res.status(200).json({ message: 'Logout realizado' }));
-
-app.delete('/alimentos/:id', (req, res) => {
-    const idx = alimentos.findIndex(a => a.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ message: 'Alimento não encontrado' });
-    alimentos.splice(idx, 1);
-    res.status(204).send();
-});
-describe('POST /auth/logout', () => {
-    it('deve realizar logout com sucesso', async () => {
-        const res = await request(app).post('/auth/logout');
-
-        expect(res.statusCode).toBe(200);
-        expect(res.body).toHaveProperty('message', 'Logout realizado');
-    });
-});
 
 describe('DELETE /alimentos/:id', () => {
-    it('deve remover um alimento existente', async () => {
+    it('Deve retornar 204 ao remover um alimento existente', async () => {
         // Adiciona alimento para garantir que existe
         const novoAlimento = { nome: 'Farinha', quantidade: 1, unidade: 'kg' };
         const addRes = await request(app).post('/alimentos').send(novoAlimento);
         const id = addRes.body.id;
-        const res = await request(app).delete(`/alimentos/${id}`);
+        const resposta = await request(app).delete(`/alimentos/${id}`);
 
         expect(res.statusCode).toBe(204);
     });
 
     it('deve retornar 404 ao tentar remover alimento inexistente', async () => {
-        const res = await request(app).delete('/alimentos/999999');
+        const resposta = await request(app).delete('/alimentos/9999');
 
         expect(res.statusCode).toBe(404);
         expect(res.body).toHaveProperty('message', 'Alimento não encontrado');
