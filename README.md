@@ -134,29 +134,7 @@ Observação: após qualquer alteração no `package.json` (instalação de nova
 - Testes automatizados
 - Autenticação real (JWT / OAuth)
 
-## Registro de Bugs
 
-1. Bug 01 – Problema no Login de Acesso
-Título:
-Campos de login são limpos após tentativa com tipo de usuário incorreto
-Descrição:
-Ao tentar realizar login com credenciais corretas, porém selecionando um tipo de usuário diferente do real (por exemplo, tentar logar como comprador usando credenciais do dono, ou vice-versa), o sistema limpa automaticamente os campos de login e senha, obrigando o usuário a digitar novamente.
-Comportamento esperado:
-O sistema deve exibir uma mensagem de erro informando que o tipo de usuário não corresponde às credenciais, sem apagar os campos já preenchidos.
-Passos para reproduzir:
-1.	Acessar a tela de login.
-2.	Informar o usuário e senha corretos de um dono.
-3.	Selecionar o tipo de usuário comprador.
-4.	Clicar em Entrar.
-5.	Observar que os campos “usuário” e “senha” são limpos automaticamente.
-6.	Repetir o mesmo processo com o inverso (usuário comprador, tipo dono) e observar o mesmo comportamento.
-
-Severidade: Média
-Prioridade: Média
-
-2. Bug 02 – Cadastro Duplicado e Validação de Campos
-Título:
-Sistema permite cadastro duplicado e inserção de caracteres inválidos nos campos de produto
 
 ## Licença
 Projeto para fins didáticos.
