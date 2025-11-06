@@ -13,7 +13,6 @@ A aplicação utiliza uma API REST documentada em `swagger.yaml` e roda em Expre
 - Consulta de progresso de consumo
 - Mensagens de erro amigáveis para falhas de API
 
-## Endpoints principais da API
 
 ## Endpoints principais da API
 - `POST /auth/login` — Login de usuário
